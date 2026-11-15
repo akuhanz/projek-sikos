@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kos;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\PengajuanSewa;
 
 class DashboardController extends Controller
 {
@@ -64,6 +65,17 @@ class DashboardController extends Controller
                 && (int) $k->kamar_tersedia === 0) {
                 $perhatian[] = ['nada' => 'biasa', 'teks' => $k->nama_kos . ' tampil penuh di situs. Kalau sudah ada kamar kosong, perbarui jumlahnya.', 'aksi' => 'Perbarui', 'url' => route('pemilik.kos.index') . '#kos-' . $k->id_kos];
             }
+        }
+
+        $baru = PengajuanSewa::untukPemilik($user->id_user)->where('status', 'menunggu')->count();
+
+        if ($baru > 0) {
+            array_unshift($perhatian, [
+                'nada' => 'biasa',
+                'teks' => $baru . ' pengajuan sewa baru menunggu responsmu.',
+                'aksi' => 'Tinjau',
+                'url'  => route('pemilik.pengajuan.index'),
+            ]);
         }
 
         $urutan    = ['merah' => 0, 'biasa' => 1, 'kuning' => 2];

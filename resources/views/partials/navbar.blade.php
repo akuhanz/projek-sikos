@@ -11,7 +11,8 @@
     $tautan = [['Semua kos', route('kos.index'), request()->routeIs('kos.index')]];
 
     if ($role === 'pencari_kos') {
-        $tautan[] = ['Favorit', route('favorites.index', $dari), request()->routeIs('favorites.index')];
+         $tautan[] = ['Favorit', route('favorites.index', $dari), request()->routeIs('favorites.index')];
+        $tautan[] = ['Pengajuan', route('pengajuan.index'), request()->routeIs('pengajuan.*')];
     } elseif ($role === 'pemilik_kos') {
         $tautan[] = ['Kos saya', route('pemilik.kos.index'), request()->routeIs('pemilik.kos.index')];
         $tautan[] = ['Tambah kos', route('pemilik.kos.create'), request()->routeIs('pemilik.kos.create')];

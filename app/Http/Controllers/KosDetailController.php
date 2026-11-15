@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kos;
+use App\Models\PengajuanSewa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,11 +43,26 @@ class KosDetailController extends Controller
             ->filter()
             ->values();
 
-        // Nomor WhatsApp: 08xxxx diubah menjadi 628xxxx
-        $wa = null;
-        $telp = preg_replace('/\D+/', '', (string) $kos->pemilik?->no_telp);
-        if ($telp !== '') {
-            $wa = str_starts_with($telp, '0') ? '62' . substr($telp, 1) : $telp;
+        // Pengajuan milik pencari yang sedang login: untuk kos ini, dan yang masih aktif di kos lain
+        $pengajuan = null;
+        $aktifLain = null;
+
+        if ($user?->role === 'pencari_kos') {
+            $milikku = PengajuanSewa::with('kos:id_kos,nama_kos')
+                ->where('id_user', $user->id_user)
+                ->where(fn ($q) => $q->where('id_kos', $kos->id_kos)->orWhereIn('status', ['menunggu', 'diterima']))
+                ->orderByDesc('id_pengajuan')
+                ->get();
+
+            // Yang terbaru untuk kos ini
+            $pengajuan = $milikku->first(fn ($p) => (int) $p->id_kos === (int) $kos->id_kos);
+
+            // Yang masih aktif di kos lain (menghalangi pengajuan baru)
+            $aktifLain = $milikku->first(fn ($p) => (int) $p->id_kos !== (int) $kos->id_kos
+                && in_array($p->status, ['menunggu', 'diterima'], true));
+
+            // Pemilik sudah dimuat di $kos, jadi tidak perlu query lagi
+            $pengajuan?->setRelation('kos', $kos);
         }
 
         $serupa = Kos::where('status_verifikasi', 'terverifikasi')
@@ -64,33 +80,24 @@ class KosDetailController extends Controller
         } : null;
 
         return view('kos.show', compact(
-            'kos', 'fotoLuar', 'fotoDalam', 'peraturan', 'wa', 'serupa', 'dashboardUrl', 'dariJenis'
+            'kos', 'fotoLuar', 'fotoDalam', 'peraturan', 'pengajuan', 'aktifLain', 'serupa', 'dashboardUrl', 'dariJenis'
         ));
     }
-    public function hubungi(Kos $kos)
+
+    // Tombol "Ajukan Sewa" untuk tamu: diarahkan ke login lalu kembali ke formnya
+    public function ajukan(Kos $kos)
     {
-        $user = Auth::user();
+        abort_unless($kos->status_verifikasi === 'terverifikasi', 404);
 
-        // Aturan lihat sama seperti halaman detail
-        $boleh = $kos->status_verifikasi === 'terverifikasi'
-            || ($user && ($user->role === 'admin' || (int) $kos->id_user === (int) $user->id_user));
-        abort_unless($boleh, 404);
+        $tujuan = route('kos.show', $kos) . '#ajukan';
 
-        // Belum login: simpan halaman detail sebagai tujuan setelah login
-        if (! $user) {
-            session(['url.intended' => route('kos.show', $kos)]);
+        if (! Auth::check()) {
+            session(['url.intended' => $tujuan]);
 
             return redirect()->route('login')
-                ->with('status', 'Silakan login dulu untuk menghubungi pemilik kos.');
+                ->with('status', 'Silakan login dulu untuk mengajukan sewa.');
         }
 
-        // 08xxxx diubah menjadi 628xxxx
-        $telp = preg_replace('/\D+/', '', (string) $kos->pemilik?->no_telp);
-        abort_if($telp === '', 404);
-        $wa = str_starts_with($telp, '0') ? '62' . substr($telp, 1) : $telp;
-
-        $pesan = 'Halo, saya tertarik dengan ' . $kos->nama_kos . '. Apakah masih ada kamar kosong?';
-
-        return redirect()->away('https://wa.me/' . $wa . '?text=' . rawurlencode($pesan));
+        return redirect()->to($tujuan);
     }
 }

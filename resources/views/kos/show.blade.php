@@ -107,66 +107,63 @@
             @endif
         </section>
 
-        {{-- JUDUL + HARGA --}}
-        <section class="mt-8 grid gap-6 lg:grid-cols-[1fr_380px] lg:items-start">
-            <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="rounded-full bg-neutral-900 px-3.5 py-1.5 text-xs font-semibold text-white">Kos {{ ucfirst($kos->jenis_kos) }}</span>
-                    @if ($terverifikasi)
-                        <span class="rounded-full border border-neutral-900 px-3.5 py-1.5 text-xs font-semibold">Terverifikasi</span>
-                    @endif
-                </div>
+        {{-- JUDUL + KARTU SEWA --}}
+    <div class="mt-8 grid gap-x-10 lg:grid-cols-[minmax(0,1fr)_380px]">
 
-                <div class="mt-4 flex items-start justify-between gap-4">
-                    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ $kos->nama_kos }}</h1>
-                    @if ($terverifikasi)
-                        <div class="shrink-0"><x-tombol-favorit :kos="$kos" ukuran="besar" /></div>
-                    @endif
-                </div>
-
-                <p class="mt-3 flex items-start gap-2 text-base text-neutral-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="mt-1 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                    </svg>
-                    {{ $kos->alamat }}
-                </p>
+        {{-- Judul --}}
+        <section class="min-w-0 lg:col-start-1 lg:row-start-1">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full bg-neutral-900 px-3.5 py-1.5 text-xs font-semibold text-white">Kos {{ ucfirst($kos->jenis_kos) }}</span>
+                @if ($terverifikasi)
+                    <span class="rounded-full border border-neutral-900 px-3.5 py-1.5 text-xs font-semibold">Terverifikasi</span>
+                @endif
             </div>
 
-            <div class="rounded-2xl border border-neutral-300 p-5">
-                @if ($kos->harga)
-                    <p class="text-3xl font-bold">Rp {{ number_format($kos->harga, 0, ',', '.') }}</p>
-                    <p class="mt-1 text-sm text-neutral-600">per bulan</p>
-                @else
-                    <p class="text-lg font-semibold">Harga belum dicantumkan</p>
-                    <p class="mt-1 text-sm text-neutral-600">Hubungi pemilik untuk menanyakan harga.</p>
+            <div class="mt-4 flex items-start justify-between gap-4">
+                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ $kos->nama_kos }}</h1>
+                @if ($terverifikasi)
+                    <div class="shrink-0"><x-tombol-favorit :kos="$kos" ukuran="besar" /></div>
                 @endif
+            </div>
 
-                @if ($wa)
-                    <a href="{{ route('kos.hubungi', $kos) }}"
-                    @auth target="_blank" rel="noopener" @endauth
-                    class="mt-5 flex items-center justify-center rounded-full bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-black">
-                        Hubungi via WhatsApp
-                    </a>
+            <p class="mt-3 flex items-start gap-2 text-base text-neutral-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mt-1 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                </svg>
+                {{ $kos->alamat }}
+            </p>
 
-                    @guest
-                        <p class="mt-2 text-center text-xs text-neutral-600">Login dulu untuk menghubungi pemilik.</p>
-                    @endguest
-                @else
-                    <p class="mt-5 rounded-lg bg-neutral-100 px-4 py-3 text-sm text-neutral-700">Pemilik belum mencantumkan nomor telepon.</p>
-                @endif
+            @if ($tersedia !== null)
+                <p class="mt-3 text-sm font-medium">
+                    @if ($tersedia === 0)
+                        Kamar penuh
+                    @else
+                        Tersisa <span class="font-bold {{ $tersedia <= 3 ? 'text-red-600' : '' }}">{{ $tersedia }} kamar</span>
+                    @endif
+                </p>
+            @endif
 
-                <div class="mt-5 flex items-center gap-3 border-t border-neutral-200 pt-4">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
-                        {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($kos->pemilik?->nama_lengkap ?? 'P', 0, 1)) }}
-                    </div>
-                    <div class="min-w-0">
-                        <p class="text-xs text-neutral-600">Pemilik kos</p>
-                        <p class="truncate text-sm font-semibold">{{ $kos->pemilik?->nama_lengkap ?? '-' }}</p>
-                    </div>
+            <div class="mt-6 flex items-center gap-3 border-t border-neutral-200 pt-5">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
+                    {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($kos->pemilik?->nama_lengkap ?? 'P', 0, 1)) }}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-xs text-neutral-600">Kos dikelola oleh</p>
+                    <p class="truncate text-base font-semibold">{{ $kos->pemilik?->nama_lengkap ?? '-' }}</p>
                 </div>
             </div>
         </section>
+
+        {{-- Kartu sewa (kolom kanan, ikut menempel saat digulir) --}}
+        <aside class="mt-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0" aria-label="Pengajuan sewa">
+            <div class="lg:sticky lg:top-36">
+                @include('kos._ajukan')
+            </div>
+        </aside>
+
+        {{-- Isi halaman (spesifikasi sampai lokasi) --}}
+        <div class="min-w-0 lg:col-start-1 lg:row-start-2">
 
         {{-- SPESIFIKASI KAMAR --}}
         <section id="spesifikasi" class="mt-12 scroll-mt-24 border-t border-neutral-200 pt-10">
@@ -287,6 +284,9 @@
             </div>
         </section>
 
+            </div>{{-- tutup isi halaman --}}
+        </div>{{-- tutup grid judul + kartu --}}
+        
         {{-- KOS SERUPA --}}
         @if ($serupa->count())
             <section class="mt-14 border-t border-neutral-200 pt-10">
