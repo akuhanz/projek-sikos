@@ -10,6 +10,10 @@ use App\Http\Controllers\Pemilik\DashboardController;
 use App\Http\Controllers\Pemilik\KosController;
 use App\Http\Controllers\Pemilik\PengajuanController as PemilikPengajuanController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\KosController as AdminKosController;
+use App\Http\Controllers\Admin\PenggunaController as AdminPenggunaController;
+use App\Http\Controllers\Admin\PengajuanController as AdminPengajuanController;
 
 // Halaman publik
 Route::get('/', [LandingController::class, 'index'])->name('home');
@@ -31,14 +35,26 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Dashboard per role
-    Route::get('/admin/dashboard', fn () => 'Dashboard Admin')
-        ->middleware('role:admin')->name('admin.dashboard');
-
     Route::get('/pencari/dashboard', fn () => redirect()->route('pengajuan.index'))
         ->middleware('role:pencari_kos')->name('pencari.dashboard');
 
     Route::get('/pemilik/dashboard', [DashboardController::class, 'index'])
         ->middleware('role:pemilik_kos')->name('pemilik.dashboard');
+
+    // Panel admin
+    Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/kos', [AdminKosController::class, 'index'])->name('kos.index');
+        Route::get('/kos/{kos}', [AdminKosController::class, 'show'])->name('kos.show');
+        Route::patch('/kos/{kos}/verifikasi', [AdminKosController::class, 'verifikasi'])->name('kos.verifikasi');
+        Route::delete('/kos/{kos}', [AdminKosController::class, 'destroy'])->name('kos.destroy');
+
+        Route::get('/pengguna', [AdminPenggunaController::class, 'index'])->name('pengguna.index');
+        Route::delete('/pengguna/{user}', [AdminPenggunaController::class, 'destroy'])->name('pengguna.destroy');
+
+        Route::get('/pengajuan', [AdminPengajuanController::class, 'index'])->name('pengajuan.index');
+    });
 
     // Kelola kos dan pengajuan (pemilik)
     Route::prefix('pemilik')->name('pemilik.')->middleware('role:pemilik_kos')->group(function () {

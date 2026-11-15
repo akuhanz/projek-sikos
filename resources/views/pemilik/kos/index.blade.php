@@ -65,6 +65,10 @@
                                 <span class="rounded-full px-2.5 py-0.5 text-[11px] font-semibold {{ $status[1] }}">{{ $status[0] }}</span>
                             </div>
                             <p class="mt-1 line-clamp-1 text-[13px] text-neutral-600">{{ $k->alamat }}</p>
+                            
+                            @if ($k->status_verifikasi === 'ditolak' && $k->catatan_verifikasi)
+                                <p class="mt-1 text-[13px] font-medium text-red-800">Alasan ditolak: {{ $k->catatan_verifikasi }}</p>
+                            @endif
                             <p class="mt-1 text-xs text-neutral-600">
                                 Kos {{ ucfirst($k->jenis_kos) }}
                                 &middot; {{ $k->harga ? 'Rp ' . number_format($k->harga, 0, ',', '.') . ' per bulan' : 'Harga belum diisi' }}

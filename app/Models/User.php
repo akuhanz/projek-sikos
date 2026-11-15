@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -49,5 +50,15 @@ class User extends Authenticatable
             ->all();
 
         return in_array($idKos, $this->idKosFavoritCache, true);
+    }
+
+    public function kos(): HasMany
+    {
+        return $this->hasMany(Kos::class, 'id_user', 'id_user');
+    }
+
+    public function pengajuan(): HasMany
+    {
+        return $this->hasMany(PengajuanSewa::class, 'id_user', 'id_user');
     }
 }

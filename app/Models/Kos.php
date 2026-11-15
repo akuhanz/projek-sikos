@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Storage;
 
 class Kos extends Model
 {
@@ -73,12 +74,15 @@ class Kos extends Model
         'latitude',
         'longitude',
         'status_verifikasi',
+        'catatan_verifikasi',
+        'diverifikasi_pada',
     ];
 
     protected function casts(): array
     {
         return [
             'fasilitas' => 'array',
+            'diverifikasi_pada' => 'datetime',
         ];
     }
 
@@ -96,6 +100,23 @@ class Kos extends Model
     public function galeri(): HasMany
     {
         return $this->hasMany(FotoKos::class, 'id_kos', 'id_kos')->orderBy('urutan');
+    }
+
+    public function pengajuan(): HasMany
+    {
+        return $this->hasMany(PengajuanSewa::class, 'id_kos', 'id_kos');
+    }
+
+    // Semua file foto milik kos ini (utama + galeri), untuk dihapus dari storage
+    public function daftarBerkas(): array
+    {
+        $berkas = $this->galeri()->pluck('path')->all();
+
+        if ($this->foto) {
+            $berkas[] = $this->foto;
+        }
+
+        return $berkas;
     }
 
     // Pemakaian: $kos->foto_url (null kalau belum ada foto utama)
